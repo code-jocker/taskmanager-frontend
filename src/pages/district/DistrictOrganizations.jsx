@@ -65,9 +65,9 @@ export default function DistrictOrganizations() {
       setModal(null)
       load()
     } catch (err) {
-      const msg = err.response?.data?.message || 'Action failed'
+      const msg = err.response?.data?.message || err.message || 'Action failed'
       toast.error(msg)
-      console.error('Action error:', err.response?.data)
+      console.error('Action error:', err.response?.data || err.message)
     } finally {
       setSubmitting(false)
     }

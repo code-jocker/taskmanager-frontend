@@ -6,11 +6,11 @@ import { taskAPI } from '../../services/api'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function StudentResultsPage() {
-  const [tasks, setTasks]   = useState([])
+  const [tasks, setTasks]     = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    taskAPI.getAll({ status: 'graded', limit: 50 })
+    taskAPI.getAll({ limit: 50 })
       .then(({ data }) => setTasks(data.data || []))
       .catch(() => setTasks([]))
       .finally(() => setLoading(false))
@@ -18,14 +18,14 @@ export default function StudentResultsPage() {
 
   if (loading) return <DashboardLayout title="My Results"><PageLoader /></DashboardLayout>
 
-  const graded  = tasks.filter(t => t.score !== null && t.score !== undefined)
-  const avg     = graded.length ? Math.round(graded.reduce((s, t) => s + t.score, 0) / graded.length) : 0
-  const highest = graded.length ? Math.max(...graded.map(t => t.score)) : 0
-  const passed  = graded.filter(t => t.score >= 50).length
+  const graded  = tasks.filter(t => t.my_submission?.status === 'graded' && t.my_submission?.score !== null)
+  const avg     = graded.length ? Math.round(graded.reduce((s, t) => s + t.my_submission.score, 0) / graded.length) : 0
+  const highest = graded.length ? Math.max(...graded.map(t => t.my_submission.score)) : 0
+  const passed  = graded.filter(t => t.my_submission.score >= 50).length
 
   const chartData = graded.slice(0, 10).map(t => ({
     name: t.title?.length > 12 ? t.title.slice(0, 12) + '…' : t.title,
-    score: t.score,
+    score: t.my_submission.score,
     max: t.max_score || 100,
   }))
 
@@ -59,22 +59,29 @@ export default function StudentResultsPage() {
           <p className="text-sm text-gray-400 py-8 text-center">No graded tasks yet.</p>
         ) : (
           <div className="space-y-2">
-            {graded.map(task => (
-              <div key={task.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{task.subject || task.class?.name || '—'}</p>
+            {graded.map(task => {
+              const score = task.my_submission.score
+              const max   = task.max_score || 100
+              return (
+                <div key={task.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-white">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{task.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{task.subject?.name || task.class?.name || '—'}</p>
+                    {task.my_submission.feedback && (
+                      <p className="text-xs text-gray-500 mt-1 italic">"{task.my_submission.feedback}"</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-lg font-bold ${score >= 50 ? 'text-gov-green' : 'text-red-500'}`}>
+                      {score}/{max}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${score >= 50 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                      {score >= 50 ? 'Pass' : 'Fail'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-lg font-bold ${task.score >= 50 ? 'text-gov-green' : 'text-red-500'}`}>
-                    {task.score}/{task.max_score || 100}
-                  </span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${task.score >= 50 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                    {task.score >= 50 ? 'Pass' : 'Fail'}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

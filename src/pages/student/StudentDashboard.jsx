@@ -21,10 +21,10 @@ export default function StudentDashboard() {
       .catch(() => setTasks([]))
   }, [])
 
-  const pending   = tasks.filter(t => t.status === 'pending').length
-  const submitted = tasks.filter(t => t.status === 'submitted').length
-  const graded    = tasks.filter(t => t.status === 'graded').length
-  const overdue   = tasks.filter(t => t.status === 'pending' && isOverdue(t.due_date)).length
+  const pending   = tasks.filter(t => !t.my_submission).length
+  const submitted = tasks.filter(t => ['submitted', 'resubmitted'].includes(t.my_submission?.status)).length
+  const graded    = tasks.filter(t => t.my_submission?.status === 'graded').length
+  const overdue   = tasks.filter(t => !t.my_submission && isOverdue(t.due_date)).length
 
   return (
     <DashboardLayout
@@ -42,16 +42,18 @@ export default function StudentDashboard() {
         <SectionHeader title="My Tasks" subtitle="All assigned tasks" />
         <div className="space-y-2">
           {tasks.map(task => {
-            const late = task.status === 'pending' && isOverdue(task.due_date)
+            const sub = task.my_submission
+            const late = !sub && isOverdue(task.due_date)
+            const displayStatus = sub?.status || 'pending'
             return (
               <Link
                 key={task.id}
                 to={`/student/tasks/${task.id}`}
                 className={clsx(
                   'flex items-center justify-between p-4 rounded-lg border transition-all hover:shadow-sm',
-                  late                        ? 'bg-red-50/60 border-red-200'     :
-                  task.status === 'graded'    ? 'bg-emerald-50/60 border-emerald-200' :
-                  task.status === 'submitted' ? 'bg-blue-50/60 border-blue-200'   :
+                  late                                                          ? 'bg-red-50/60 border-red-200'         :
+                  displayStatus === 'graded'                                    ? 'bg-emerald-50/60 border-emerald-200' :
+                  ['submitted', 'resubmitted'].includes(displayStatus)          ? 'bg-blue-50/60 border-blue-200'       :
                   'bg-white border-gray-100 hover:border-gray-200'
                 )}
               >
@@ -66,7 +68,7 @@ export default function StudentDashboard() {
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{task.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-gray-500">{task.subject}</span>
+                      <span className="text-xs text-gray-500">{task.subject?.name || task.class?.name}</span>
                       <span className="text-gray-300">·</span>
                       <span className={clsx('text-xs', late ? 'text-red-600 font-medium' : 'text-gray-500')}>
                         {late ? '⚠ Overdue · ' : 'Due: '}
@@ -76,14 +78,17 @@ export default function StudentDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  {task.score !== null && (
-                    <span className="text-sm font-bold text-gov-green">{task.score}/100</span>
+                  {sub?.score !== null && sub?.score !== undefined && (
+                    <span className="text-sm font-bold text-gov-green">{sub.score}/{task.max_score || 100}</span>
                   )}
-                  <Badge status={task.status} />
+                  <Badge status={displayStatus} />
                 </div>
               </Link>
             )
           })}
+          {tasks.length === 0 && (
+            <p className="text-sm text-gray-400 py-8 text-center">No tasks assigned yet.</p>
+          )}
         </div>
       </div>
     </DashboardLayout>

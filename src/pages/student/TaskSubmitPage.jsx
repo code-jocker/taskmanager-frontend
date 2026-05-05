@@ -1,25 +1,17 @@
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, FileText, CheckCircle, X } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import { Alert, Badge, Spinner } from '../../components/ui/index.jsx'
+import { Alert, Badge, Spinner, PageLoader } from '../../components/ui/index.jsx'
 import { taskAPI } from '../../services/api'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
-// Mock task data
-const MOCK_TASK = {
-  id: 1, title: 'Algebra Assignment 1', description: 'Solve the given algebraic equations showing all working steps.',
-  instructions: '1. Show all working steps\n2. Use proper notation\n3. Submit as PDF',
-  due_date: '2024-02-15T23:59:59', max_score: 100, submission_type: 'both',
-  late_submission_allowed: true, late_penalty_percentage: 10,
-  subject: { name: 'Mathematics' }, status: 'published'
-}
-
 export default function TaskSubmitPage() {
   const { id }              = useParams()
   const navigate            = useNavigate()
-  const [task]              = useState(MOCK_TASK)
+  const [task, setTask]     = useState(null)
+  const [loading, setLoading] = useState(true)
   const [file, setFile]     = useState(null)
   const [text, setText]     = useState('')
   const [dragging, setDragging] = useState(false)
@@ -28,7 +20,19 @@ export default function TaskSubmitPage() {
   const [error, setError]   = useState('')
   const inputRef            = useRef(null)
 
-  const isOverdue = new Date(task.due_date) < new Date()
+  useEffect(() => {
+    taskAPI.getById(id)
+      .then(({ data }) => {
+        setTask(data.data)
+        if (data.data?.my_submission?.status === 'submitted' || data.data?.my_submission?.status === 'graded') {
+          setSubmitted(true)
+        }
+      })
+      .catch(() => toast.error('Failed to load task'))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  const isOverdue = task ? new Date(task.due_date) < new Date() : false
 
   const handleDrop = (e) => {
     e.preventDefault(); setDragging(false)
@@ -53,15 +57,28 @@ export default function TaskSubmitPage() {
     } finally { setSubmitting(false) }
   }
 
+  if (loading) return <DashboardLayout title="Submit Task"><PageLoader /></DashboardLayout>
+  if (!task) return <DashboardLayout title="Submit Task"><p className="text-sm text-gray-500 p-6">Task not found.</p></DashboardLayout>
+
   if (submitted) {
+    const sub = task?.my_submission
     return (
       <DashboardLayout title="Task Submitted">
         <div className="max-w-lg mx-auto card text-center py-12">
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={32} className="text-emerald-600" />
           </div>
-          <h2 className="text-lg font-bold text-gray-900">Submitted Successfully!</h2>
-          <p className="text-sm text-gray-500 mt-2">Your work has been submitted. You'll be notified when it's graded.</p>
+          <h2 className="text-lg font-bold text-gray-900">
+            {sub?.status === 'graded' ? 'Task Graded' : 'Submitted Successfully!'}
+          </h2>
+          {sub?.status === 'graded' ? (
+            <div className="mt-3 space-y-1">
+              <p className="text-3xl font-bold text-primary-900">{sub.score}/{task.max_score}</p>
+              {sub.feedback && <p className="text-sm text-gray-600 mt-2">{sub.feedback}</p>}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 mt-2">Your work has been submitted. You'll be notified when it's graded.</p>
+          )}
           <button onClick={() => navigate('/student')} className="btn-primary mt-6 px-6">
             Back to Dashboard
           </button>
@@ -77,12 +94,11 @@ export default function TaskSubmitPage() {
           <ArrowLeft size={14} /> Back
         </button>
 
-        {/* Task info */}
         <div className="card mb-5">
           <div className="flex items-start justify-between mb-3">
             <div>
               <h2 className="text-base font-bold text-gray-900">{task.title}</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{task.subject?.name}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{task.subject?.name || task.class?.name}</p>
             </div>
             <Badge status={isOverdue ? 'late' : 'active'} />
           </div>
@@ -102,11 +118,9 @@ export default function TaskSubmitPage() {
           </div>
         </div>
 
-        {/* Submission form */}
         <div className="card space-y-5">
           {error && <Alert type="error" message={error} />}
 
-          {/* File upload */}
           {task.submission_type !== 'text' && (
             <div>
               <label className="label">Attach File {task.submission_type === 'file' && '*'}</label>
@@ -143,7 +157,6 @@ export default function TaskSubmitPage() {
             </div>
           )}
 
-          {/* Text answer */}
           {task.submission_type !== 'file' && (
             <div>
               <label className="label">Written Answer {task.submission_type === 'text' && '*'}</label>
