@@ -78,16 +78,11 @@ export default function OrgStatusPage() {
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock size={16} className="text-amber-600" />
-                    <p className="font-semibold text-amber-800">Pending Approval</p>
+                    <p className="font-semibold text-amber-800">Registration Processing</p>
                   </div>
                   <p className="text-xs text-amber-700">
-                    Your registration is under review by the District Admin. You'll be notified once approved.
+                    Your registration is being processed. Please try again in a moment.
                   </p>
-                  <div className="mt-3 flex items-center gap-2 text-xs">
-                    <span className={`px-2 py-0.5 rounded-full font-medium ${org.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                      Payment: {org.payment_status}
-                    </span>
-                  </div>
                 </div>
               )}
 

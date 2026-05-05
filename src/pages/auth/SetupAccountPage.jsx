@@ -3,8 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { GraduationCap, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import { orgAPI } from '../../services/api'
+import { GraduationCap, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { orgAPI, authAPI } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import { Spinner, Alert } from '../../components/ui/index.jsx'
 import toast from 'react-hot-toast'
 
@@ -21,13 +22,11 @@ const schema = z.object({
 
 export default function SetupAccountPage() {
   const [showPw, setShowPw]   = useState(false)
-  const [done, setDone]       = useState(false)
   const [error, setError]     = useState('')
   const navigate              = useNavigate()
   const location              = useLocation()
-
-  // Pre-fill from OrgStatusPage navigation state
-  const prefill = location.state || {}
+  const { login }             = useAuth()
+  const prefill               = location.state || {}
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
@@ -46,30 +45,20 @@ export default function SetupAccountPage() {
         admin_name:        values.admin_name,
         password:          values.password,
       })
-      setDone(true)
-      toast.success('Account ready! You can now log in.')
+      // Auto-login after setup
+      const { data } = await authAPI.login({
+        email:    values.contact_email,
+        password: values.password,
+      })
+      login(data.data.token, {
+        ...data.data.user,
+        userType: data.data.user.type || 'user',
+      })
+      toast.success('Account ready! Welcome to your dashboard.')
+      navigate('/org')
     } catch (err) {
       setError(err.response?.data?.message || 'Setup failed. Please check your details.')
     }
-  }
-
-  if (done) {
-    return (
-      <div className="min-h-screen bg-gov-light flex items-center justify-center p-6">
-        <div className="w-full max-w-md card text-center py-10">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={32} className="text-emerald-600" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Account Ready!</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Your admin account has been created. Log in to start managing your organization — add staff, create classes, and assign tasks.
-          </p>
-          <button onClick={() => navigate('/login')} className="btn-primary px-8 py-2.5 mx-auto">
-            Go to Login
-          </button>
-        </div>
-      </div>
-    )
   }
 
   return (
