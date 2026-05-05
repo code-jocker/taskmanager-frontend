@@ -68,11 +68,15 @@ export const userAPI = {
 }
 
 export const classAPI = {
-  create:  (data)   => api.post('/classes', data),
-  getAll:  (params) => api.get('/classes', { params }),
-  getById: (id)     => api.get(`/classes/${id}`),
-  update:  (id, d)  => api.put(`/classes/${id}`, d),
-  remove:  (id)     => api.delete(`/classes/${id}`),
+  create:        (data)              => api.post('/classes', data),
+  getAll:        (params)            => api.get('/classes', { params }),
+  getById:       (id)                => api.get(`/classes/${id}`),
+  update:        (id, d)             => api.put(`/classes/${id}`, d),
+  remove:        (id)                => api.delete(`/classes/${id}`),
+  getStats:      (id)                => api.get(`/classes/${id}/stats`),
+  addStudent:    (id, student_id)    => api.post(`/classes/${id}/students`, { student_id }),
+  removeStudent: (id, studentId)     => api.delete(`/classes/${id}/students/${studentId}`),
+  addSubject:    (id, data)          => api.post(`/classes/${id}/subjects`, data),
 }
 
 export const taskAPI = {
