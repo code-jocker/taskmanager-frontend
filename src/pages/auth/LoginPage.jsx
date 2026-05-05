@@ -56,7 +56,7 @@ export default function LoginPage() {
       navigate(ROLE_ROUTES[role] || '/dashboard')
     } catch (err) {
       const msg = err.response?.data?.message
-        || (err.code === 'ERR_NETWORK' ? 'Cannot reach server. Make sure the backend is running on port 5000.' : null)
+        || (err.code === 'ERR_NETWORK' ? 'Cannot reach the server. Please try again later.' : null)
         || 'Login failed. Please try again.'
       setError(msg)
     }

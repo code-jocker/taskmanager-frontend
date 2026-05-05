@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://taskmanager-backend-1-9yaq.onrender.com'
+
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || ''}/api`,
+  baseURL: `${BASE_URL}/api`,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
 })
