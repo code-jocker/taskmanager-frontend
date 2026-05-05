@@ -1,14 +1,18 @@
-const { defineConfig } = require('vite')
+const { defineConfig, loadEnv } = require('vite')
 const react = require('@vitejs/plugin-react')
 
-module.exports = defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true
+module.exports = defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  return {
+    plugins: [react()],
+    server: {
+      port: 3000,
+      proxy: {
+        '/api': {
+          target: env.VITE_API_URL || 'https://taskmanager-backend-1-9yaq.onrender.com',
+          changeOrigin: true,
+          secure: true,
+        }
       }
     }
   }
