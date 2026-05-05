@@ -83,7 +83,7 @@ export default function JoinPage() {
                 <div className="relative flex-1">
                   <input
                     {...register('organization_code')}
-                    placeholder="e.g. RWAB12"
+                    placeholder="e.g. GSB-2025"
                     className={clsx(
                       'input pr-8',
                       codeStatus === 'valid'   && 'border-emerald-400 focus:ring-emerald-500',
