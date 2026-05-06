@@ -31,7 +31,7 @@ export default function StudentDashboard() {
       title="My Dashboard"
       subtitle={`${user?.organization?.name || ''} · ${user?.role === 'intern' ? 'Intern' : 'Student'}`}
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <StatCard label="Pending Tasks"  value={pending}   icon={ClipboardList} color="blue"  />
         <StatCard label="Submitted"      value={submitted} icon={Clock}         color="gold"  />
         <StatCard label="Graded"         value={graded}    icon={CheckCircle}   color="green" />

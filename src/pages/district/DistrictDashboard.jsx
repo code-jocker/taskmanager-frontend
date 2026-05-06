@@ -61,18 +61,18 @@ export default function DistrictDashboard() {
       subtitle={`${user?.district?.name || 'Your District'} · District Admin`}
     >
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <StatCard label="Total Organizations" value={stats?.total_organizations || 0}  icon={Building2}   color="blue"  />
         <StatCard label="Pending Approval"    value={pendingCount || 0}                  icon={Clock}       color="gold"  />
         <StatCard label="Approved"            value={approvedCount || 0}                icon={CheckCircle} color="green" />
         <StatCard label="Total Users"         value={stats?.total_users || 0}         icon={Users}       color="gray"  />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-4 md:mb-6">
         {/* Approval trend chart */}
         <div className="card lg:col-span-2">
           <SectionHeader title="Approval Trends" subtitle="Monthly organization approvals vs rejections" />
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={180} className="md:h-[200px]">
             <BarChart data={MOCK_CHART} barSize={14}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />

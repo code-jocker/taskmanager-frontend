@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Bell, ChevronDown, Check, CheckCheck, X } from 'lucide-react'
+import { Bell, ChevronDown, Check, CheckCheck, X, Menu } from 'lucide-react'
 import { useNotif } from '../../context/NotifContext'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -11,7 +11,7 @@ const NOTIF_ICONS = {
   reminder: { bg: 'bg-amber-100',  text: 'text-amber-700',  label: 'Reminder' },
 }
 
-export default function Topbar({ title, subtitle }) {
+export default function Topbar({ title, subtitle, onMobileMenuToggle, isMobileMenuOpen }) {
   const { notifications, unread, markRead, markAllRead } = useNotif()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -36,15 +36,23 @@ export default function Topbar({ title, subtitle }) {
   }
 
   return (
-    <header className="fixed top-0 left-60 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-20">
+    <header className="fixed top-0 md:left-60 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 z-20">
       {/* Left: Title */}
       <div>
-        <h1 className="text-base font-semibold text-gray-900 leading-tight">{title}</h1>
+        <h1 className="text-sm md:text-base font-semibold text-gray-900 leading-tight">{title}</h1>
         {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={onMobileMenuToggle}
+          className="md:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
 
         {/* Notification Bell */}
         <div className="relative" ref={notifRef}>

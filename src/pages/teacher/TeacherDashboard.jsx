@@ -46,17 +46,17 @@ export default function TeacherDashboard() {
 
   return (
     <DashboardLayout title="Teacher Dashboard" subtitle={`${user?.organization?.name || ''} · Teacher`}>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
         <StatCard label="Active Tasks"      value={active}   icon={ClipboardList} color="blue"  />
         <StatCard label="Total Submissions" value={totalSub} icon={CheckSquare}   color="green" />
         <StatCard label="Pending Grading"   value={pending}  icon={Clock}         color="gold"  />
         <StatCard label="Total Tasks"       value={tasks.length} icon={Users}     color="gray"  />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-4 md:mb-6">
         <div className="card lg:col-span-2">
           <SectionHeader title="Submission Overview" subtitle="Submitted vs total per task" />
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={180} className="md:h-[200px]">
             <BarChart data={tasks.slice(0,6).map(t => ({ task: t.title?.slice(0,8), submitted: t.total_submissions || 0, total: t.class?.max_students || 30 }))} barSize={18}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="task" tick={{ fontSize: 11 }} />
