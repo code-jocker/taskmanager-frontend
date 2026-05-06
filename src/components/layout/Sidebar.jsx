@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Building2, Users, BookOpen, ClipboardList,
-  BarChart3, CreditCard, LogOut, ChevronRight, GraduationCap,
+  BarChart3, CreditCard, LogOut, GraduationCap,
   Briefcase, Settings, FileText, CheckSquare
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -65,37 +65,37 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-60 bg-primary-900 flex flex-col z-30">
+    <aside className="fixed inset-y-0 left-0 w-60 bg-sidebar-bg flex flex-col z-50 shadow-2xl">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-gov-gold rounded-md flex items-center justify-center flex-shrink-0">
-            <GraduationCap size={18} className="text-white" />
+      <div className="px-3 py-5 border-b border-white/20 bg-sidebar-top">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-sidebar-accent rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+            <GraduationCap size={20} className="text-sidebar-text" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Rwanda TMS</p>
-            <p className="text-blue-300 text-xs">Task Management</p>
+            <p className="text-sidebar-text font-bold text-sm leading-tight">Rwanda TMS</p>
+            <p className="text-sidebar-secondary text-xs font-medium">Task Management</p>
           </div>
         </div>
       </div>
 
       {/* User info */}
-      <div className="px-4 py-3 border-b border-white/10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gov-gold/20 border border-gov-gold/40 flex items-center justify-center flex-shrink-0">
-            <span className="text-gov-gold text-xs font-bold">
+      <div className="px-3 py-4 border-b border-white/20 bg-sidebar-bg/30">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-sidebar-avatar border-2 border-sidebar-accent/50 flex items-center justify-center flex-shrink-0 shadow-md">
+            <span className="text-sidebar-accent text-sm font-bold">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-white text-xs font-semibold truncate">{user?.name || 'User'}</p>
-            <p className="text-blue-300 text-xs">{ROLE_LABELS[role] || role}</p>
+            <p className="text-sidebar-text text-sm font-semibold truncate">{user?.name || 'User'}</p>
+            <p className="text-sidebar-secondary text-xs font-medium">{ROLE_LABELS[role] || role}</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {links.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -106,13 +106,13 @@ export default function Sidebar() {
             }
           >
             <Icon size={16} />
-            <span>{label}</span>
+            <span className="font-medium">{label}</span>
           </NavLink>
         ))}
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 py-3 border-t border-white/10 space-y-0.5">
+      <div className="px-3 py-4 border-t border-white/20 space-y-1">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
@@ -120,14 +120,14 @@ export default function Sidebar() {
           }
         >
           <Settings size={16} />
-          <span>Settings</span>
+          <span className="font-medium">Settings</span>
         </NavLink>
         <button
           onClick={handleLogout}
-          className="sidebar-link sidebar-link-inactive w-full text-left hover:bg-red-500/20 hover:text-red-300"
+          className="sidebar-link sidebar-link-inactive w-full text-left hover:bg-red-500/25 hover:text-red-200 transition-all duration-200"
         >
           <LogOut size={16} />
-          <span>Logout</span>
+          <span className="font-medium">Logout</span>
         </button>
       </div>
     </aside>

@@ -23,6 +23,17 @@ module.exports = {
           gold:  '#D97706',
           gray:  '#6B7280',
           light: '#F3F4F6',
+        },
+        sidebar: {
+          bg: '#2F4A8A',
+          top: '#2B3F7F',
+          active: '#3E5AA8',
+          text: '#FFFFFF',
+          secondary: '#B8C6E3',
+          icon: '#D6E0FF',
+          avatar: '#3A4F91',
+          accent: '#F59E0B',
+          divider: 'rgba(255, 255, 255, 0.08)',
         }
       },
       fontFamily: {
