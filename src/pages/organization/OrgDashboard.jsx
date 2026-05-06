@@ -61,18 +61,18 @@ export default function OrgDashboard() {
       subtitle={`${user?.organization?.name || 'Your Organization'} · Admin`}
     >
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Users"   value={stats?.total_users  || 0} icon={Users}        color="blue"  />
         <StatCard label="Active Users"  value={stats?.active_users || 0} icon={TrendingUp}   color="green" />
         <StatCard label="Classes"       value={stats?.total_classes || 0} icon={BookOpen}    color="gold"  />
         <StatCard label="Active Tasks"  value={stats?.total_tasks  || 0} icon={ClipboardList} color="gray" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-4 md:mb-6">
+      <div className="grid lg:grid-cols-3 gap-5 mb-6">
         {/* Class performance */}
         <div className="card lg:col-span-2">
           <SectionHeader title="Class Performance" subtitle="Task completion rate by class" />
-          <ResponsiveContainer width="100%" height={180} className="md:h-[200px]">
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={MOCK_PERF} barSize={20}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="class" tick={{ fontSize: 11 }} />
@@ -86,7 +86,7 @@ export default function OrgDashboard() {
         {/* Users by role pie */}
         <div className="card">
           <SectionHeader title="Users by Role" />
-          <ResponsiveContainer width="100%" height={140} className="md:h-[160px]">
+          <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie data={roleData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={3}>
                 {roleData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
@@ -109,7 +109,7 @@ export default function OrgDashboard() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
           { to: '/org/users',   icon: UserPlus,  label: 'Add Staff',     color: 'bg-primary-900' },
           { to: '/org/classes', icon: BookOpen,  label: 'Manage Classes',color: 'bg-gov-green'   },

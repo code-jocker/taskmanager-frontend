@@ -54,7 +54,7 @@ const ROLE_LABELS = {
   intern:            'Intern',
 }
 
-export default function Sidebar({ onCloseMobile }) {
+export default function Sidebar() {
   const { user, logout, role } = useAuth()
   const navigate = useNavigate()
   const links = NAV[role] || []
@@ -62,10 +62,6 @@ export default function Sidebar({ onCloseMobile }) {
   const handleLogout = async () => {
     await logout()
     navigate('/login')
-  }
-
-  const handleLinkClick = () => {
-    if (onCloseMobile) onCloseMobile()
   }
 
   return (
@@ -105,7 +101,6 @@ export default function Sidebar({ onCloseMobile }) {
             key={to}
             to={to}
             end={to.split('/').length <= 2}
-            onClick={handleLinkClick}
             className={({ isActive }) =>
               clsx('sidebar-link', isActive ? 'sidebar-link-active' : 'sidebar-link-inactive')
             }
@@ -120,7 +115,6 @@ export default function Sidebar({ onCloseMobile }) {
       <div className="px-3 py-3 border-t border-white/10 space-y-0.5">
         <NavLink
           to="/settings"
-          onClick={handleLinkClick}
           className={({ isActive }) =>
             clsx('sidebar-link', isActive ? 'sidebar-link-active' : 'sidebar-link-inactive')
           }
