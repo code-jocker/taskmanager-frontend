@@ -44,7 +44,9 @@ export default function LoginPage() {
     setError('')
     try {
       const fn = tab === 'district_admin' ? authAPI.districtAdminLogin : authAPI.login
+      console.log('[LoginPage] endpoint:', tab, 'payload:', values);
       const { data } = await fn(values)
+
 
       login(data.data.token, {
         ...data.data.user,
@@ -55,11 +57,19 @@ export default function LoginPage() {
       const role = data.data.user.role || data.data.user.type
       navigate(ROLE_ROUTES[role] || '/dashboard')
     } catch (err) {
+      console.error('[LoginPage] login error:', {
+        status: err.response?.status,
+        message: err.response?.data?.message,
+        data: err.response?.data,
+        code: err.code,
+        configUrl: err.config?.url,
+      })
       const msg = err.response?.data?.message
         || (err.code === 'ERR_NETWORK' ? 'Cannot reach the server. Please try again later.' : null)
         || 'Login failed. Please try again.'
       setError(msg)
     }
+
   }
 
   return (

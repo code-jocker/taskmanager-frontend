@@ -30,6 +30,11 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-gray-900 text-sm">Rwanda TMS</span>
           </div>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="#features" className="text-sm text-gray-600 hover:text-primary-900 transition-colors">Features</a>
+            <a href="#how-it-works" className="text-sm text-gray-600 hover:text-primary-900 transition-colors">How It Works</a>
+            <a href="#pricing" className="text-sm text-gray-600 hover:text-primary-900 transition-colors">Pricing</a>
+          </div>
           <div className="flex items-center gap-3">
             <Link to="/login"    className="btn-secondary text-xs py-1.5 px-3">Sign In</Link>
             <Link to="/register" className="btn-primary  text-xs py-1.5 px-3">Register Organization</Link>
@@ -80,7 +85,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-16 px-6 bg-gov-light">
+      <section id="features" className="py-16 px-6 bg-gov-light">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900">Everything You Need</h2>
@@ -101,7 +106,7 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="py-16 px-6 bg-white">
+      <section id="how-it-works" className="py-16 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900">How It Works</h2>
@@ -126,7 +131,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="py-16 px-6 bg-gov-light">
+      <section id="pricing" className="py-16 px-6 bg-gov-light">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900">Transparent Pricing (RWF)</h2>

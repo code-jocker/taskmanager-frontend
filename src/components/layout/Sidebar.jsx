@@ -25,7 +25,7 @@ const NAV = {
     { to: '/teacher',            icon: LayoutDashboard, label: 'Dashboard'   },
     { to: '/teacher/tasks',      icon: ClipboardList,   label: 'My Tasks'    },
     { to: '/teacher/create-task',icon: CheckSquare,     label: 'Create Task' },
-    { to: '/teacher/classes',    icon: BookOpen,        label: 'My Classes'  },
+    { to: '/teacher/classes',    icon: BookOpen,        label: 'Manage Classes & Students'  },
   ],
   worker: [
     { to: '/teacher',            icon: LayoutDashboard, label: 'Dashboard'   },

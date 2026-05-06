@@ -37,6 +37,9 @@ export default function ClassesPage() {
   const [detailClass, setDetailClass] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [addStudentId, setAddStudentId]   = useState('')
+  const [createStudentMode, setCreateStudentMode] = useState(false)
+  const [newStudent, setNewStudent] = useState({ name: '', email: '', password: '', phone: '' })
+
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
@@ -127,6 +130,38 @@ export default function ClassesPage() {
     }
   }
 
+  const onCreateAndAddStudent = async () => {
+    try {
+      const studentData = {
+        name: newStudent.name,
+        email: newStudent.email,
+        password: newStudent.password,
+        phone: newStudent.phone || undefined,
+        role: 'student',
+        class_id: detailClass.id
+      }
+
+      const { data: createdUser } = await userAPI.create(studentData)
+      const generatedId = createdUser.data.studentProfile?.student_id
+      toast.success(`Student created with ID: ${generatedId}`)
+
+      setNewStudent({ name: '', email: '', password: '', phone: '' })
+      setCreateStudentMode(false)
+
+      // Refresh detail and students list
+      const { data } = await classAPI.getById(detailClass.id)
+      setDetailClass(data.data)
+      load()
+      // Refresh students list
+      const s = await userAPI.getAll({ role: 'student', limit: 200 })
+      setStudents(s.data.data || [])
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to create and add student';
+      toast.error(errorMessage);
+    }
+  }
+
+
   const onRemoveStudent = async (studentUserId) => {
     if (!confirm('Remove this student from the class?')) return
     try {
@@ -153,7 +188,7 @@ export default function ClassesPage() {
   const columns = [
     { key: 'name', label: 'Class',
       render: r => (
-        <div>
+        <div onClick={() => openDetail(r)} className="cursor-pointer hover:bg-gray-50 rounded p-1 -m-1 transition-colors">
           <p className="text-sm font-medium text-gray-900">{r.name}</p>
           <p className="text-xs text-gray-400">{r.code} · {r.type}</p>
         </div>
@@ -184,7 +219,7 @@ export default function ClassesPage() {
 
   return (
     <DashboardLayout
-      title={isOrgAdmin ? 'Classes & Departments' : 'My Classes'}
+      title={isOrgAdmin ? 'Classes & Departments' : 'Manage Classes & Students'}
       subtitle="Manage classes, teachers and students"
     >
       <div className="card">
@@ -275,28 +310,89 @@ export default function ClassesPage() {
             {/* Add student */}
             <div>
               <SectionHeader title="Add Student to Class" />
-              <div className="flex gap-2 mt-2">
-                <select
-                  value={addStudentId}
-                  onChange={e => setAddStudentId(e.target.value)}
-                  className="input flex-1"
-                >
-                  <option value="">— Select student —</option>
-                  {availableStudents.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.email})</option>
-                  ))}
-                </select>
-                <button
-                  onClick={onAddStudent}
-                  disabled={!addStudentId}
-                  className="btn-primary px-4 flex items-center gap-1.5 flex-shrink-0"
-                >
-                  <UserPlus size={14} /> Add
-                </button>
+              <div className="mt-2 space-y-3">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCreateStudentMode(false)}
+                    className={`btn-secondary text-xs py-1.5 px-3 ${!createStudentMode ? 'bg-primary-900 text-white' : ''}`}
+                  >
+                    Add Existing
+                  </button>
+                  <button
+                    onClick={() => setCreateStudentMode(true)}
+                    className={`btn-secondary text-xs py-1.5 px-3 ${createStudentMode ? 'bg-primary-900 text-white' : ''}`}
+                  >
+                    Create New
+                  </button>
+                </div>
+
+                {createStudentMode ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        value={newStudent.name}
+                        onChange={e => setNewStudent({ ...newStudent, name: e.target.value })}
+                        placeholder="Student Name"
+                        className="input"
+                      />
+                      <input
+                        value={newStudent.email}
+                        onChange={e => setNewStudent({ ...newStudent, email: e.target.value })}
+                        placeholder="Email"
+                        type="email"
+                        className="input"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        value={newStudent.password}
+                        onChange={e => setNewStudent({ ...newStudent, password: e.target.value })}
+                        placeholder="Password"
+                        type="password"
+                        className="input"
+                      />
+                      <input
+                        value={newStudent.phone}
+                        onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })}
+                        placeholder="Phone (optional)"
+                        className="input"
+                      />
+                    </div>
+                    <button
+                      onClick={onCreateAndAddStudent}
+                      disabled={!newStudent.name || !newStudent.email || !newStudent.password}
+                      className="btn-primary w-full flex items-center justify-center gap-1.5"
+                    >
+                      <UserPlus size={14} /> Create & Add Student
+                    </button>
+
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <select
+                      value={addStudentId}
+                      onChange={e => setAddStudentId(e.target.value)}
+                      className="input flex-1"
+                    >
+                      <option value="">— Select student —</option>
+                      {availableStudents.map(s => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.email})</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={onAddStudent}
+                      disabled={!addStudentId}
+                      className="btn-primary px-4 flex items-center gap-1.5 flex-shrink-0"
+                    >
+                      <UserPlus size={14} /> Add
+                    </button>
+                  </div>
+                )}
+
+                {!createStudentMode && availableStudents.length === 0 && (
+                  <p className="text-xs text-gray-400 mt-1">All students are already assigned to this class.</p>
+                )}
               </div>
-              {availableStudents.length === 0 && (
-                <p className="text-xs text-gray-400 mt-1">All students are already assigned to this class.</p>
-              )}
             </div>
 
             {/* Students list */}
