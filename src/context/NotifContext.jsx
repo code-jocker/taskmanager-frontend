@@ -41,10 +41,20 @@ export function NotifProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    loadNotifications()
-    const t = setInterval(loadNotifications, 15000)
-    return () => clearInterval(t)
+    let mounted = true
+    const tick = async () => {
+      if (!mounted) return
+      await loadNotifications()
+    }
+
+    tick()
+    const t = setInterval(tick, 30000)
+    return () => {
+      mounted = false
+      clearInterval(t)
+    }
   }, [loadNotifications])
+
 
   const markRead = useCallback(async (id) => {
     try {
