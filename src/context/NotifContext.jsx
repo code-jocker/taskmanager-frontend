@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { userAPI } from '../services/api'
+import { useAuth } from './AuthContext'
+
 
 const NotifContext = createContext(null)
 
@@ -40,11 +42,23 @@ export function NotifProvider({ children }) {
     }
   }, [])
 
+  const { user } = useAuth()
+
   useEffect(() => {
+    if (!user) return
+
     let mounted = true
+    let inFlight = false
+
     const tick = async () => {
       if (!mounted) return
-      await loadNotifications()
+      if (inFlight) return
+      inFlight = true
+      try {
+        await loadNotifications()
+      } finally {
+        inFlight = false
+      }
     }
 
     tick()
@@ -54,7 +68,8 @@ export function NotifProvider({ children }) {
       mounted = false
       clearInterval(t)
     }
-  }, [loadNotifications])
+  }, [user, loadNotifications])
+
 
 
   const markRead = useCallback(async (id) => {
