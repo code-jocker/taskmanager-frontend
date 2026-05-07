@@ -48,7 +48,8 @@ export function NotifProvider({ children }) {
     }
 
     tick()
-    const t = setInterval(tick, 30000)
+    const t = setInterval(tick, 45000)
+
     return () => {
       mounted = false
       clearInterval(t)
