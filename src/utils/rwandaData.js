@@ -28,14 +28,13 @@ export const RWANDA_DISTRICTS = [
   { id: 22, name: 'Nyanza',       code: 'NYZ', province: 'Southern Province' },
   { id: 23, name: 'Nyaruguru',    code: 'NYU', province: 'Southern Province' },
   { id: 24, name: 'Ruhango',      code: 'RHG', province: 'Southern Province' },
-  // Western Province
-  { id: 25, name: 'Karongi',      code: 'KRG', province: 'Western Province'  },
-  { id: 26, name: 'Ngororero',    code: 'NGR', province: 'Western Province'  },
-  { id: 27, name: 'Nyabihu',      code: 'NYB', province: 'Western Province'  },
-  { id: 28, name: 'Nyamasheke',   code: 'NYK', province: 'Western Province'  },
-  { id: 29, name: 'Rubavu',       code: 'RBV', province: 'Western Province'  },
-  { id: 30, name: 'Rusizi',       code: 'RSZ', province: 'Western Province'  },
-  { id: 31, name: 'Rutsiro',      code: 'RTS', province: 'Western Province'  },
+// Western Province
+  { id: 25, name: 'Karongi',    code: 'KRG', province: 'Western Province'  },
+  { id: 26, name: 'Ngororero',  code: 'NGR', province: 'Western Province'  },
+  { id: 27, name: 'Nyabihu',    code: 'NYB', province: 'Western Province'  },
+  { id: 28, name: 'Rubavu',     code: 'RBV', province: 'Western Province'  },
+  { id: 29, name: 'Rusizi',     code: 'RSZ', province: 'Western Province'  },
+  { id: 30, name: 'Rutsiro',    code: 'RTS', province: 'Western Province'  },
 ]
 
 // Group districts by province for grouped <optgroup> rendering
