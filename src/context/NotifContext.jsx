@@ -1,39 +1,79 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import toast from 'react-hot-toast'
+import { userAPI } from '../services/api'
 
 const NotifContext = createContext(null)
 
-// Mock notifications — replace with Socket.io events in production
-const MOCK = [
-  { id: 1, type: 'task',     title: 'New Task Assigned',        body: 'Algebra Assignment 1 is due Feb 15', time: '2m ago',  read: false },
-  { id: 2, type: 'approval', title: 'Organization Approved',    body: 'Test School has been approved',      time: '1h ago',  read: false },
-  { id: 3, type: 'reminder', title: 'Deadline Reminder',        body: 'Physics project due tomorrow',       time: '3h ago',  read: true  },
-  { id: 4, type: 'task',     title: 'Submission Graded',        body: 'Your Math assignment scored 85/100', time: '1d ago',  read: true  },
-]
+function formatNotif(reminder) {
+  const createdAt = reminder.created_at || reminder.sent_at || new Date().toISOString()
+  const due = reminder.reminder_time
+
+  const title = 'Task Reminder'
+  const body = reminder.task_id ? `Reminder for task #${reminder.task_id}` : 'Deadline reminder'
+
+  return {
+    id: reminder.id,
+    type: reminder.type === 'email' ? 'reminder' : (reminder.type || 'reminder'),
+    title,
+    body,
+    time: new Date(createdAt).toLocaleString(),
+    read: reminder.status !== 'pending'
+  }
+}
 
 export function NotifProvider({ children }) {
-  const [notifications, setNotifications] = useState(MOCK)
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const unread = notifications.filter(n => !n.read).length
 
-  const markRead = useCallback((id) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    )
+  const loadNotifications = useCallback(async () => {
+    try {
+      setLoading(true)
+      const { data } = await userAPI.getNotifications({ limit: 20 })
+      const list = (data || []).map(formatNotif)
+      setNotifications(list)
+    } catch (e) {
+      console.error('Failed to load notifications', e)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const markAllRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  useEffect(() => {
+    loadNotifications()
+    const t = setInterval(loadNotifications, 15000)
+    return () => clearInterval(t)
+  }, [loadNotifications])
+
+  const markRead = useCallback(async (id) => {
+    try {
+      await userAPI.markNotificationRead(id)
+      setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+    } catch (e) {
+      console.error('Failed to mark notification read', e)
+      toast.error('Failed to update notification')
+    }
   }, [])
+
+  const markAllRead = useCallback(async () => {
+    // Best effort: mark all visible unread notifications read sequentially.
+    const unreadIds = notifications.filter(n => !n.read).map(n => n.id)
+    await Promise.all(unreadIds.map(id => userAPI.markNotificationRead(id).catch(() => null)))
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  }, [notifications])
 
   const addNotification = useCallback((notif) => {
-    setNotifications(prev => [{ ...notif, id: Date.now(), read: false }, ...prev])
+    // Not used with backend-driven notifications, but keep for compatibility.
+    setNotifications(prev => [{ ...notif, id: notif.id ?? Date.now(), read: !!notif.read }, ...prev])
   }, [])
 
   return (
-    <NotifContext.Provider value={{ notifications, unread, markRead, markAllRead, addNotification }}>
+    <NotifContext.Provider value={{ notifications, unread, markRead, markAllRead, addNotification, loading }}>
       {children}
     </NotifContext.Provider>
   )
 }
 
 export const useNotif = () => useContext(NotifContext)
+

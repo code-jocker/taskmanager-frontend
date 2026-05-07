@@ -66,7 +66,10 @@ export const userAPI = {
   remove:         (id)             => api.delete(`/users/${id}`),
   bulkImport:     (form)           => api.post('/users/bulk-import', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
   getStudentDashboard: ()          => api.get('/users/student/dashboard'),
+  getNotifications: (params)      => api.get('/users/notifications', { params }),
+  markNotificationRead: (id)      => api.patch(`/users/notifications/${id}/read`),
 }
+
 
 export const classAPI = {
   create:        (data)              => api.post('/classes', data),
