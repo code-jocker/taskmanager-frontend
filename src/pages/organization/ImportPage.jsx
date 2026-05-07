@@ -1,18 +1,38 @@
 import { useState, useRef } from 'react'
-import { Upload, FileText, CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react'
+import { Upload, CheckCircle, XCircle, Download } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import { Alert, SectionHeader } from '../../components/ui/index.jsx'
+import { Alert } from '../../components/ui/index.jsx'
 import { userAPI } from '../../services/api'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
+import * as XLSX from 'xlsx'
+
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
+
+function normalizeHeader(v) {
+  return String(v ?? '').trim().toLowerCase()
+}
+
+function normalizeCell(v) {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'string') return v.trim()
+  return String(v).trim()
+}
+
+function getFirstSheetName(workbook) {
+  const names = workbook?.SheetNames || []
+  return names[0] || null
+}
 
 export default function ImportPage() {
-  const [file, setFile]         = useState(null)
-  const [dragging, setDragging] = useState(false)
-  const [preview, setPreview]   = useState(null)
-  const [uploading, setUploading] = useState(false)
-  const [result, setResult]     = useState(null)
-  const inputRef                = useRef(null)
+  const [file, setFile]               = useState(null)
+  const [dragging, setDragging]       = useState(false)
+  const [parsed, setParsed]           = useState(null) // { total, valid, invalid, rows }
+  const [uploading, setUploading]     = useState(false)
+  const [result, setResult]           = useState(null)
+  const inputRef                      = useRef(null)
+
 
   const handleDrop = (e) => {
     e.preventDefault()
@@ -21,36 +41,114 @@ export default function ImportPage() {
     if (f) processFile(f)
   }
 
-  const processFile = (f) => {
-    const allowed = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel']
+  const processFile = async (f) => {
+    const allowed = [
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ]
+
+    setParsed(null)
+
+
     if (!allowed.includes(f.type) && !f.name.match(/\.(csv|xlsx|xls)$/i)) {
       toast.error('Only CSV or Excel files are allowed')
       return
     }
+
     setFile(f)
     setResult(null)
-    // Mock preview
-    setPreview({
-      total: 42,
-      valid: 39,
-      invalid: 3,
-      sample: [
-        { id: 'STD001', name: 'Alice Uwimana',  email: 'alice@school.rw', role: 'student', status: 'valid'   },
-        { id: 'STD002', name: 'Bob Nkurunziza', email: 'bob@school.rw',   role: 'student', status: 'valid'   },
-        { id: 'STD003', name: 'Carol Mukamana', email: '',                 role: 'student', status: 'invalid' },
-      ]
-    })
+
+    try {
+      const data = await f.arrayBuffer()
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheetName = getFirstSheetName(workbook)
+      if (!sheetName) {
+        toast.error('No worksheet found in the Excel file')
+        return
+      }
+
+      const sheet = workbook.Sheets[sheetName]
+      const allRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
+
+      // Remove leading empty rows
+      const rows = allRows.filter((r) => Array.isArray(r) && r.some((c) => String(c ?? '').trim() !== ''))
+      if (!rows.length) {
+        toast.error('Excel file is empty')
+        return
+      }
+
+      const headerRow = rows[0].map(normalizeCell)
+      const colIndex = {
+        id: headerRow.findIndex((h) => h === 'id'),
+        name: headerRow.findIndex((h) => h === 'name'),
+        email: headerRow.findIndex((h) => h === 'email'),
+        role: headerRow.findIndex((h) => h === 'role')
+      }
+
+      const requiredMissing = ['id', 'name', 'email', 'role'].filter((k) => colIndex[k] === -1)
+      if (requiredMissing.length) {
+        toast.error(`Missing required headers: ${requiredMissing.join(', ')}`)
+        return
+      }
+
+      const userRows = []
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i]
+        const id = normalizeCell(r[colIndex.id])
+        const name = normalizeCell(r[colIndex.name])
+        const email = normalizeCell(r[colIndex.email])
+        const role = normalizeCell(r[colIndex.role])
+
+        const missingRequired = !id || !name || !role
+        const emailInvalid = !EMAIL_RE.test(email)
+
+        const status = missingRequired || emailInvalid ? 'invalid' : 'valid'
+        userRows.push({
+          id,
+          name,
+          email,
+          role,
+          status
+        })
+      }
+
+      const total = userRows.length
+      const valid = userRows.filter((x) => x.status === 'valid').length
+      const invalid = total - valid
+
+      setParsed({ total, valid, invalid, rows: userRows })
+    } catch (e) {
+      console.error(e)
+      toast.error('Failed to parse Excel file')
+    }
   }
 
   const handleUpload = async () => {
     if (!file) return
+    if (!parsed) {
+      toast.error('Please upload a valid Excel file first')
+      return
+    }
+
+    const validRows = parsed.rows.filter((r) => r.status === 'valid')
+    if (!validRows.length) {
+      toast.error('No valid rows found to import')
+      return
+    }
+
     setUploading(true)
     try {
-      const form = new FormData()
-      form.append('file', file)
-      await userAPI.bulkImport(form)
-      setResult({ success: true, imported: preview.valid, failed: preview.invalid })
-      toast.success(`${preview.valid} records imported successfully`)
+      const payload = { users: validRows.map(({ status, ...u }) => u) }
+      const res = await userAPI.bulkImport(payload)
+      const serverMessage = res?.data?.message
+      setResult({
+        success: true,
+        imported: validRows.length,
+        failed: parsed.invalid,
+        message: serverMessage
+      })
+      toast.success(`${validRows.length} records imported successfully`)
     } catch (err) {
       setResult({ success: false, message: err.response?.data?.message || 'Import failed' })
       toast.error('Import failed')
@@ -59,9 +157,10 @@ export default function ImportPage() {
     }
   }
 
-  const reset = () => { setFile(null); setPreview(null); setResult(null) }
+  const reset = () => { setFile(null); setParsed(null); setResult(null) }
 
   return (
+
     <DashboardLayout title="Import Data" subtitle="Bulk import students or employees via CSV/Excel">
       <div className="max-w-3xl">
         {/* Template download */}
@@ -95,40 +194,44 @@ export default function ImportPage() {
             <Upload size={32} className={clsx('mb-3', dragging ? 'text-primary-900' : 'text-gray-400')} />
             <p className="text-sm font-semibold text-gray-700">Drop your file here or click to browse</p>
             <p className="text-xs text-gray-400 mt-1">Supports CSV, XLS, XLSX · Max 10MB</p>
-            <input ref={inputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={e => processFile(e.target.files[0])} />
+        <input
+              ref={inputRef}
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              className="hidden"
+              onChange={(e) => processFile(e.target.files?.[0])}
+            />
+
           </div>
         )}
 
-        {/* Preview */}
-        {preview && !result && (
+        {/* Parsed Preview */}
+        {parsed && !result && (
           <div className="card">
-            <SectionHeader
-              title="File Preview"
-              subtitle={file?.name}
-              action={<button onClick={reset} className="btn-secondary text-xs py-1.5 px-3">Change File</button>}
-            />
-
             {/* Summary */}
             <div className="grid grid-cols-3 gap-3 mb-5">
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-xl font-bold text-gray-900">{preview.total}</p>
-                <p className="text-xs text-gray-500 mt-0.5">Total Records</p>
+                <p className="text-xl font-bold text-gray-900">{parsed.total}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Total</p>
               </div>
               <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                <p className="text-xl font-bold text-gov-green">{preview.valid}</p>
+                <p className="text-xl font-bold text-gov-green">{parsed.valid}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Valid</p>
               </div>
               <div className="bg-red-50 rounded-lg p-3 text-center">
-                <p className="text-xl font-bold text-red-600">{preview.invalid}</p>
+                <p className="text-xl font-bold text-red-600">{parsed.invalid}</p>
                 <p className="text-xs text-gray-500 mt-0.5">Invalid</p>
               </div>
             </div>
 
-            {preview.invalid > 0 && (
-              <Alert type="warning" message={`${preview.invalid} records have errors and will be skipped. Fix them in your file and re-upload for complete import.`} />
+            {parsed.invalid > 0 && (
+              <Alert
+                type="warning"
+                message={`${parsed.invalid} rows are invalid and will be skipped. Fix the errors and re-upload to import everything.`}
+              />
             )}
 
-            {/* Sample rows */}
+            {/* Actual Excel data */}
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
@@ -141,32 +244,33 @@ export default function ImportPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {preview.sample.map((row, i) => (
-                    <tr key={i} className={row.status === 'invalid' ? 'bg-red-50/50' : ''}>
-                      <td className="table-cell font-mono">{row.id}</td>
-                      <td className="table-cell">{row.name}</td>
+                  {parsed.rows.map((row, i) => (
+                    <tr key={`${row.id}-${i}`} className={row.status === 'invalid' ? 'bg-red-50/50' : ''}>
+                      <td className="table-cell font-mono">{row.id || <span className="text-red-500">Missing</span>}</td>
+                      <td className="table-cell">{row.name || <span className="text-red-500">Missing</span>}</td>
                       <td className="table-cell text-gray-500">{row.email || <span className="text-red-500">Missing</span>}</td>
-                      <td className="table-cell capitalize">{row.role}</td>
+                      <td className="table-cell capitalize">{row.role || <span className="text-red-500">Missing</span>}</td>
                       <td className="table-cell">
                         {row.status === 'valid'
                           ? <CheckCircle size={14} className="text-emerald-500" />
-                          : <XCircle    size={14} className="text-red-500"     />
+                          : <XCircle size={14} className="text-red-500" />
                         }
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <p className="text-xs text-gray-400 mt-2">Showing 3 of {preview.total} records</p>
             </div>
 
-            <div className="flex justify-end mt-5">
-              <button onClick={handleUpload} disabled={uploading} className="btn-primary px-6">
-                {uploading ? 'Importing...' : `Import ${preview.valid} Valid Records`}
+            <div className="flex justify-between items-center mt-5">
+              <button onClick={reset} className="btn-secondary text-xs py-1.5 px-3">Change File</button>
+              <button onClick={handleUpload} disabled={uploading || !parsed.valid} className="btn-primary px-6">
+                {uploading ? 'Importing...' : `Import ${parsed.valid} Valid Records`}
               </button>
             </div>
           </div>
         )}
+
 
         {/* Result */}
         {result && (

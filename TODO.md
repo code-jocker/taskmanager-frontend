@@ -1,9 +1,16 @@
-# Task progress
+# TODO - ImportPage Excel real import
 
-- [ ] Inspect backend target/endpoint being called from frontend (local vs render)
-- [ ] Determine why valid credentials are returning `Invalid credentials`
-- [ ] Ensure payload shape matches backend expectations
-- [ ] Add request/response debugging to LoginPage (endpoint + payload + status)
-- [ ] Add/confirm local backend URL wiring (VITE_API_URL + Vite proxy)
-- [ ] Re-test login for both user and district admin tabs
+- [ ] Update `src/pages/organization/ImportPage.jsx`:
+  - [ ] Install/confirm usage of `xlsx` to parse `.xlsx` and `.xls`.
+  - [ ] Replace mock preview with real parsed rows.
+  - [ ] Map headers `ID, Name, Email, Role` (case-insensitive, trimmed).
+  - [ ] Validate rows: invalid if email malformed OR ID/Name/Role missing.
+  - [ ] Remove “File Preview” header from UI.
+  - [ ] Add summary counts (Total/Valid/Invalid).
+  - [ ] Render full Excel data table with CheckCircle/XCircle icons.
+  - [ ] Update `handleUpload` to send ONLY valid rows as JSON: `{ users: [...] }`.
+- [ ] Run `npm run dev` and manually test:
+  - [ ] Upload valid/invalid Excel and verify counts + icons.
+  - [ ] Verify API payload is `{ users: [...] }`.
+
 
