@@ -14,7 +14,7 @@ const schema = z.object({
   description:             z.string().min(10, 'Description required'),
   instructions:            z.string().optional(),
   due_date:                z.string().min(1, 'Due date required'),
-  class_id:                z.coerce.number().positive('Select a class').optional(),
+  class_id:                z.coerce.number().positive('Select a class'),
   priority:                z.enum(['low', 'medium', 'high', 'urgent']),
   type:                    z.enum(['assignment', 'project', 'quiz', 'exam', 'homework', 'task']),
   max_score:               z.coerce.number().min(1).max(1000),
@@ -45,8 +45,8 @@ export default function CreateTaskPage() {
   const onSubmit = async (values) => {
     setError('')
     try {
-      await taskAPI.create(values)
-      toast.success('Task created successfully')
+      const { data } = await taskAPI.create(values)
+      toast.success(data.message || 'Task created successfully')
       navigate('/teacher/tasks')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create task')
@@ -95,11 +95,12 @@ export default function CreateTaskPage() {
             {/* Class + Due Date */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Class / Department</label>
+                <label className="label">Class / Department *</label>
                 <select {...register('class_id')} className="input">
                   <option value="">Select class</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+                {errors.class_id && <p className="text-xs text-red-500 mt-1">{errors.class_id.message}</p>}
               </div>
               <div>
                 <label className="label">Due Date *</label>

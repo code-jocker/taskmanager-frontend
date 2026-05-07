@@ -14,7 +14,15 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     taskAPI.getAll({ limit: 10 })
-      .then(({ data }) => setTasks(data.data || []))
+      .then(({ data }) => {
+        // Ensure all task objects have proper structure
+        const safeTasks = (data.data || []).map(task => ({
+          ...task,
+          class: task.class || { name: 'No Class' },
+          title: task.title || 'Untitled Task'
+        }))
+        setTasks(safeTasks)
+      })
       .catch(() => setTasks([]))
       .finally(() => setLoading(false))
   }, [])
@@ -25,7 +33,7 @@ export default function TeacherDashboard() {
 
   const columns = [
     { key: 'title', label: 'Task',
-      render: r => <div><p className="text-sm font-medium text-gray-900">{r.title}</p><p className="text-xs text-gray-400">{r.class}</p></div>
+      render: r => <div><p className="text-sm font-medium text-gray-900">{r.title || 'Untitled Task'}</p><p className="text-xs text-gray-400">{r.class?.name || 'No Class'}</p></div>
     },
     { key: 'due_date', label: 'Due Date',
       render: r => <span className="text-xs text-gray-600">{new Date(r.due_date).toLocaleDateString()}</span>
@@ -57,7 +65,7 @@ export default function TeacherDashboard() {
         <div className="card lg:col-span-2">
           <SectionHeader title="Submission Overview" subtitle="Submitted vs total per task" />
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={tasks.slice(0,6).map(t => ({ task: t.title?.slice(0,8), submitted: t.total_submissions || 0, total: t.class?.max_students || 30 }))} barSize={18}>
+            <BarChart data={tasks.slice(0,6).map(t => ({ task: t.title?.slice(0,8) || 'Task', submitted: t.total_submissions || 0, total: 30 }))} barSize={18}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="task" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />

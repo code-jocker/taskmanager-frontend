@@ -33,9 +33,10 @@ import CreateTaskPage   from './pages/teacher/CreateTaskPage'
 import SubmissionsPage  from './pages/teacher/SubmissionsPage'
 
 // Student pages
-import StudentDashboard   from './pages/student/StudentDashboard'
-import TaskSubmitPage     from './pages/student/TaskSubmitPage'
-import StudentResultsPage from './pages/student/StudentResultsPage'
+import StudentDashboard     from './pages/student/StudentDashboard'
+import StudentTasksListPage from './pages/student/StudentTasksListPage'
+import TaskSubmitPage       from './pages/student/TaskSubmitPage'
+import StudentResultsPage   from './pages/student/StudentResultsPage'
 
 // Shared
 import SettingsPage from './pages/SettingsPage'
@@ -164,7 +165,7 @@ function AppRoutes() {
         <RequireAuth roles={['student', 'intern']}><StudentDashboard /></RequireAuth>
       } />
       <Route path="/student/tasks" element={
-        <RequireAuth roles={['student', 'intern']}><StudentDashboard /></RequireAuth>
+        <RequireAuth roles={['student', 'intern']}><StudentTasksListPage /></RequireAuth>
       } />
       <Route path="/student/tasks/:id" element={
         <RequireAuth roles={['student', 'intern']}><TaskSubmitPage /></RequireAuth>

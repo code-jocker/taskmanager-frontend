@@ -59,12 +59,13 @@ export const orgAPI = {
 }
 
 export const userAPI = {
-  create:     (data)   => api.post('/users', data),
-  getAll:     (params) => api.get('/users', { params }),
-  getById:    (id)     => api.get(`/users/${id}`),
-  update:     (id, d)  => api.put(`/users/${id}`, d),
-  remove:     (id)     => api.delete(`/users/${id}`),
-  bulkImport: (form)   => api.post('/users/bulk-import', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  create:         (data)           => api.post('/users', data),
+  getAll:         (params)         => api.get('/users', { params }),
+  getById:        (id)             => api.get(`/users/${id}`),
+  update:         (id, d)          => api.put(`/users/${id}`, d),
+  remove:         (id)             => api.delete(`/users/${id}`),
+  bulkImport:     (form)           => api.post('/users/bulk-import', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  getStudentDashboard: ()          => api.get('/users/student/dashboard'),
 }
 
 export const classAPI = {

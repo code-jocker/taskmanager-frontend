@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { useAuth } from '../../context/AuthContext'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import { Badge, DataTable, Pagination } from '../../components/ui/index.jsx'
 import { taskAPI } from '../../services/api'
@@ -9,6 +11,7 @@ import clsx from 'clsx'
 const STATUS_FILTERS = ['all', 'draft', 'published', 'closed']
 
 export default function TasksListPage() {
+  const { user } = useAuth()
   const [tasks, setTasks]     = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter]   = useState('all')
