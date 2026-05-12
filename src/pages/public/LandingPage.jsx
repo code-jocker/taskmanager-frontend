@@ -178,6 +178,8 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-gray-400 py-8 px-6 text-center text-xs">
         <p>© 2024 Rwanda Task Management System · Built for Rwanda's Educational and Corporate Sectors 🇷🇼</p>
       </footer>
+
+      
     </div>
   )
 }
